@@ -1,3 +1,3 @@
-module thoq.dev/sorbet
+module github.com/thoq-jar/sorbet_go
 
 go 1.24.1
