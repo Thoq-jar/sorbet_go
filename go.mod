@@ -1,3 +1,3 @@
-module thoq.dev/thoq/sorbet
+module thoq.dev/sorbet
 
 go 1.24.1
