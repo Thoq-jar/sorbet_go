@@ -1,6 +1,7 @@
 package sorbet
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -9,7 +10,11 @@ type SorbetError struct {
 	Message   string
 }
 
-func Parse(contents string) map[string]string {
+func (e *SorbetError) Error() string {
+	return fmt.Sprintf("%s: %s", e.ErrorType, e.Message)
+}
+
+func Parse(contents string) (map[string]string, error) {
 	result := make(map[string]string)
 	var currentKey string
 	currentValue := ""
@@ -26,7 +31,10 @@ func Parse(contents string) map[string]string {
 
 			parts := strings.Split(line, "=>")
 			if len(parts) != 2 || strings.TrimSpace(parts[1]) == "" {
-				printError("Syntax", "Syntax error! Expected [key] => [value] at: "+line)
+				return nil, &SorbetError{
+					ErrorType: "Syntax",
+					Message:   "Expected [key] => [value] at: " + line,
+				}
 			}
 			currentKey = strings.TrimSpace(parts[0])
 			currentValue = strings.TrimSpace(parts[1])
@@ -34,7 +42,10 @@ func Parse(contents string) map[string]string {
 			if currentKey != "" {
 				currentValue += "," + strings.TrimSpace(strings.TrimPrefix(trimmedLine, ">"))
 			} else {
-				printError("SyntaxException", "Continuation line without a key at: "+line)
+				return nil, &SorbetError{
+					ErrorType: "SyntaxException",
+					Message:   "Continuation line without a key at: " + line,
+				}
 			}
 		}
 	}
@@ -43,9 +54,5 @@ func Parse(contents string) map[string]string {
 		result[currentKey] = strings.TrimSpace(currentValue)
 	}
 
-	return result
-}
-
-func printError(errorType string, message string) {
-	panic(errorType + ": " + message)
+	return result, nil
 }
